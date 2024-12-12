@@ -22,8 +22,8 @@ import (
 
 // Config holds configurations for the program provided via the command line.
 type Config struct {
-	// Server port
-	Port int
+	// Server address
+	Address string
 
 	// Redis connection options
 	RedisAddr         string
@@ -60,7 +60,7 @@ func parseFlags(progname string, args []string) (cfg *Config, output string, err
 	flags.SetOutput(&buf)
 
 	var conf Config
-	flags.IntVar(&conf.Port, "port", getEnvOrDefaultInt("PORT", 8080), "port number to use for web ui server")
+	flags.StringVar(&conf.Address, "address", getEnvDefaultString("ADDRESS", "localhost:8080"), "address to use for web ui server")
 	flags.StringVar(&conf.RedisAddr, "redis-addr", getEnvDefaultString("REDIS_ADDR", "127.0.0.1:6379"), "address of redis server to connect to")
 	flags.IntVar(&conf.RedisDB, "redis-db", getEnvOrDefaultInt("REDIS_DB", 0), "redis database number")
 	flags.StringVar(&conf.RedisUsername, "redis-username", getEnvDefaultString("REDIS_USERNAME", ""), "username to use when connecting to redis server")
@@ -181,12 +181,12 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      mux,
-		Addr:         fmt.Sprintf("localhost:%d", cfg.Port),
+		Addr:         cfg.Address,
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
 
-	fmt.Printf("Asynq Monitoring WebUI server is listening on port %d\n", cfg.Port)
+	fmt.Printf("Asynq Monitoring WebUI server is listening on %s\n", cfg.Address)
 	log.Fatal(srv.ListenAndServe())
 }
 
