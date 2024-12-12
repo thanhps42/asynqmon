@@ -28,6 +28,7 @@ type Config struct {
 	// Redis connection options
 	RedisAddr         string
 	RedisDB           int
+	RedisUsername     string
 	RedisPassword     string
 	RedisTLS          string
 	RedisURL          string
@@ -62,6 +63,7 @@ func parseFlags(progname string, args []string) (cfg *Config, output string, err
 	flags.IntVar(&conf.Port, "port", getEnvOrDefaultInt("PORT", 8080), "port number to use for web ui server")
 	flags.StringVar(&conf.RedisAddr, "redis-addr", getEnvDefaultString("REDIS_ADDR", "127.0.0.1:6379"), "address of redis server to connect to")
 	flags.IntVar(&conf.RedisDB, "redis-db", getEnvOrDefaultInt("REDIS_DB", 0), "redis database number")
+	flags.StringVar(&conf.RedisUsername, "redis-username", getEnvDefaultString("REDIS_USERNAME", ""), "username to use when connecting to redis server")
 	flags.StringVar(&conf.RedisPassword, "redis-password", getEnvDefaultString("REDIS_PASSWORD", ""), "password to use when connecting to redis server")
 	flags.StringVar(&conf.RedisTLS, "redis-tls", getEnvDefaultString("REDIS_TLS", ""), "server name for TLS validation used when connecting to redis server")
 	flags.StringVar(&conf.RedisURL, "redis-url", getEnvDefaultString("REDIS_URL", ""), "URL to redis server")
@@ -124,6 +126,7 @@ func makeRedisConnOpt(cfg *Config) (asynq.RedisConnOpt, error) {
 		connOpt.Addr = cfg.RedisAddr
 		connOpt.DB = cfg.RedisDB
 		connOpt.Password = cfg.RedisPassword
+		connOpt.Username = cfg.RedisUsername
 	}
 	if connOpt.TLSConfig == nil {
 		connOpt.TLSConfig = makeTLSConfig(cfg)
@@ -178,7 +181,7 @@ func main() {
 
 	srv := &http.Server{
 		Handler:      mux,
-		Addr:         fmt.Sprintf(":%d", cfg.Port),
+		Addr:         fmt.Sprintf("localhost:%d", cfg.Port),
 		WriteTimeout: 10 * time.Second,
 		ReadTimeout:  10 * time.Second,
 	}
